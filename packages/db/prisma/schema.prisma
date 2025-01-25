@@ -13,8 +13,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user{
-  id            String        @default(uuid())
-  username      String        @unique
-  password      String
+model User {
+  id              String          @id @default(uuid())
+  username        String          @unique
+  password        String    
+  appId           String?         @unique
+  appCertificate  String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  rooms           RoomUsers[]
+}
+
+model Room{
+  id                String          @id @default(uuid())
+  createdAt         DateTime          @default(now())
+  roomName          String           @unique()
+  hostId            String        
+  isPublic          Boolean           @default(true)
+  users             RoomUsers[]
+}
+
+model RoomUsers{
+  id              String     @id @default(uuid())
+  userId          String
+  roomId          String
+  joinedAt        DateTime   @default(now())
+  user            User       @relation(fields: [userId], references: [id])
+  room            Room       @relation(fields: [roomId], references: [id])
+
 }

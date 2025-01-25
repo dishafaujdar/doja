@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Chatroute } from "./routes/chats";
+import { Hostroute } from "./routes/assignId";
 import { signinSchema, signupSchema } from "./types";
 import client from "@repo/db/client";
 import jwt from "jsonwebtoken";
@@ -7,7 +7,6 @@ export const route = Router();
 
 route.post("/signin", async(req,res)=>{
     console.log("hey from signin");
-    
     try {
         const parsedData = signinSchema.safeParse(req.body);
         if(parsedData.error){
@@ -24,7 +23,7 @@ route.post("/signin", async(req,res)=>{
                 }
             })
             if(userExists){
-                const SigninToken = jwt.sign({username: parsedData.data.name , password: parsedData.data.password},"dojaserver",{expiresIn: "1h"});
+                const SigninToken = jwt.sign({username: parsedData.data.name , id: userExists.id},"dojaserver",{expiresIn: "1h"});
                 res.status(302).json({message:`Login successful, user's token ${SigninToken}.`})
             } else{
                 res.status(404).json({message:"User account not found, recheck username, password or try signing up ."})
@@ -76,4 +75,4 @@ route.post("/signup", async(req,res)=>{
     }
 });
 
-route.use("/chat",Chatroute)
+route.use("/room",Hostroute)

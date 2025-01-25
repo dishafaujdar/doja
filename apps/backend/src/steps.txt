@@ -1,0 +1,9 @@
+/**TODO: 
+    1. make the host id's more difficult use bcrypt */
+
+1. User will first signin or signup. {normally jese krte hai using jwt tokens} ✅
+2. Now, user will choose the room, video call || voice call || chat , accoridinlgy, after which he will be assigned with hostId, {he now is admin can allow other users to enter in the room, can also make other people admin if want to.} ✅
+3. Now he can acces the api/sdk of the chat, throught he can integrate the chat features to his own code.
+3.0 - now by using the hostId, he can connect to the agora chat server,
+3.1 - build the agora chat server, which takes hostId as input in order to let user use it's service.
+3.2 - when connect with agora chat server he then can use it's features,

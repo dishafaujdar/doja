@@ -6,17 +6,17 @@ const app = express();
 app.use(cors())
 app.use(express.json()); 
 
-// declare global{
-//     namespace Express{
-//         export interface prop{
-//             UserId?: string
-//         }
-//     }
-// }
+declare global{
+    namespace Express{
+        export interface prop{
+            userId?: string
+        }
+    }
+}
 
 export const SignupVerification = (req: Request, res: Response, next: NextFunction)=>{
     const header = req.headers["authorization"];
-    const token = header?.split("")[1];
+    const token = header?.split(" ")[1];
 
     if(!token){
         res.status(401).json({message:`Token is missing 👀`})
@@ -29,6 +29,11 @@ export const SignupVerification = (req: Request, res: Response, next: NextFuncti
             res.status(401).json({message:`The provided token is incorrect ❌`});
             return;
         }        
+
+        req.userId = decode.username;
+        console.log(req.userId);
+        next();
+        
         res.status(200).json({message:`The token has been decoded successfully 👍`})
         return;
     }

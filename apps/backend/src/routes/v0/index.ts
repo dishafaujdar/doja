@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { Hostroute } from "./routes/assignId";
+import { Hostroute } from "./routes/Id's";
+import { ServerRoute } from "./hooks/agorachatserver";
 import { signinSchema, signupSchema } from "./types";
 import client from "@repo/db/client";
 import jwt from "jsonwebtoken";
@@ -75,4 +76,5 @@ route.post("/signup", async(req,res)=>{
     }
 });
 
-route.use("/room",Hostroute)
+route.use("/room",Hostroute);
+route.use("/Server",ServerRoute)

@@ -12,4 +12,10 @@ export const signupSchema = z.object({
 
 export const roomSchema = z.object({
     roomOptions: z.enum(["Video call", "Voice call", "Chat"]),
-  });
+});
+
+export const userCheckSchema = z.object({
+    name: z.string(),
+    roomId: z.string(),
+    guestId: z.string()
+})

@@ -30,15 +30,16 @@ model Room{
   roomName          String           @unique()
   hostId            String        
   isPublic          Boolean           @default(true)
-  users             RoomUsers[]
+  roomId            String
+  //will show user's in X room
+  users             RoomUsers[]  
 }
 
 model RoomUsers{
   id              String     @id @default(uuid())
-  userId          String
+  guestId         String
   roomId          String
+  user            User       @relation(fields: [guestId], references: [id])
+  room            Room       @relation(fields: [roomId], references: [id])  
   joinedAt        DateTime   @default(now())
-  user            User       @relation(fields: [userId], references: [id])
-  room            Room       @relation(fields: [roomId], references: [id])
-
 }

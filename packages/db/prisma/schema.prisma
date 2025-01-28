@@ -22,7 +22,7 @@ model User {
   id              String          @id @default(uuid())
   username        String          @unique
   password        String    
-  appId           String?         @unique
+  RoomKey         String?         @unique
   appCertificate  String?         @unique
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -35,8 +35,8 @@ model Room {
   roomName        String          @unique()
   createdAt       DateTime        @default(now())
   isPublic        Boolean         @default(true)
-  publicRoomId    String?         @unique // Optional
-  hostId          String
+  publicRoomId    String?         @unique 
+  hostId          String          @map("userId")
   creator         User            @relation("HostRooms", fields: [hostId], references: [id]) 
   users           RoomUsers[]     
 }

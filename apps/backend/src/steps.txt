@@ -11,8 +11,12 @@
 3.2 - when connect with agora chat server he then can use it's features,
 
 DAY 2:
-Create a server where host using the hostId can control the users, chats, etc. . Here user can join with userId , if permitted by the host.
+Create a server where host using the hostId can control the users, chats, etc. . Here user can join with userId , if permitted by the host. ✅
 
 Number of routes:
 1. user will choose his room and will be given (hostId & roomId)
-2. 
+
+DAY3:
+1. user can sign in : ROUTE ✅
+2. if user want to host -> hostId and roomId : ROUTE ✅
+3. if user want to join as guest -> guestId : ROUTE ✅

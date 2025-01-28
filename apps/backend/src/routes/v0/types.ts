@@ -1,3 +1,4 @@
+// make id schema strong
 import {z} from "zod";
 
 export const signinSchema = z.object({
@@ -15,6 +16,12 @@ export const roomSchema = z.object({
 });
 
 export const userCheckSchema = z.object({
-    name: z.string(),
+    userId: z.string(),
     roomId: z.string(),
+})
+
+export const GuestEntrySchema = z.object({
+    Name: z.string(),
+    GuestId: z.string(),
+    RoomId: z.string()
 })

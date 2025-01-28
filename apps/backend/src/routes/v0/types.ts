@@ -17,5 +17,4 @@ export const roomSchema = z.object({
 export const userCheckSchema = z.object({
     name: z.string(),
     roomId: z.string(),
-    guestId: z.string()
 })

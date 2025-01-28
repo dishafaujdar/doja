@@ -13,6 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/*There'll be a user (host/guest with respective id's) 
+  1. when host create many room  (one to many relation) -> roomName, roomId, creatorName, hostId
+  2. when guest want to enter in the host's room (one to many) -> roomId 
+  */
+
 model User {
   id              String          @id @default(uuid())
   username        String          @unique
@@ -21,25 +26,28 @@ model User {
   appCertificate  String?         @unique
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
-  rooms           RoomUsers[]
+  roomsHosted     Room[]          @relation("HostRooms") 
+  roomsJoined     RoomUsers[]     
 }
 
-model Room{
-  id                String          @id @default(uuid())
-  createdAt         DateTime          @default(now())
-  roomName          String           @unique()
-  hostId            String        
-  isPublic          Boolean           @default(true)
-  roomId            String
-  //will show user's in X room
-  users             RoomUsers[]  
+model Room {
+  id              String          @id @default(uuid())
+  roomName        String          @unique()
+  createdAt       DateTime        @default(now())
+  isPublic        Boolean         @default(true)
+  publicRoomId    String?         @unique // Optional
+  hostId          String
+  creator         User            @relation("HostRooms", fields: [hostId], references: [id]) 
+  users           RoomUsers[]     
 }
 
-model RoomUsers{
-  id              String     @id @default(uuid())
-  guestId         String
+model RoomUsers {
+  id              String          @id @default(uuid())
   roomId          String
-  user            User       @relation(fields: [guestId], references: [id])
-  room            Room       @relation(fields: [roomId], references: [id])  
-  joinedAt        DateTime   @default(now())
+  userId          String
+  joinedAt        DateTime        @default(now())
+  room            Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id])
 }
+
+

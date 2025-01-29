@@ -1,10 +1,16 @@
 import { Router } from "express";
 import { Hostroute } from "./routes/Id's";
-import { ServerRoute } from "./hooks/agorachatserver";
+import { Agoraroute } from "./routes/AgoraServer"
 import { signinSchema, signupSchema } from "./types";
 import client from "@repo/db/client";
 import jwt from "jsonwebtoken";
 export const route = Router();
+
+declare module 'express-session' {
+    export interface SessionData {
+      userId?: string; 
+    }
+  }  
 
 route.post("/signin", async(req,res)=>{
     console.log("hey from signin");
@@ -22,7 +28,9 @@ route.post("/signin", async(req,res)=>{
                     username: parsedData.data.name,
                     password: parsedData.data.password
                 }
-            })
+            });
+            req.session.userId =  userExists?.id;
+            console.log(req.session.userId); //✅
             if(userExists){
                 const SigninToken = jwt.sign({username: parsedData.data.name , id: userExists.id},"dojaserver",{expiresIn: "1h"});
                 res.status(302).json({message:`Login successful, user's token ${SigninToken}.`})
@@ -63,8 +71,11 @@ route.post("/signup", async(req,res)=>{
                         password: parsedData.data.password
                     }
                 })
-                console.log(JSON.stringify(NewUserEntry));
-                const SignupToken = jwt.sign({username: parsedData.data.name , password: parsedData.data.password},"dojaserver",{expiresIn: "1h"});
+                console.log(JSON.stringify(NewUserEntry.id));
+                req.session.userId = NewUserEntry.id;
+                console.log(req.session.userId); //✅
+                
+                const SignupToken = jwt.sign({username: parsedData.data.name , id: NewUserEntry.id},"dojaserver",{expiresIn: "1h"});
                 res.status(200).json({message:`Welcome to doja's server \n
                      Token ${SignupToken} `});
                 return;
@@ -77,4 +88,4 @@ route.post("/signup", async(req,res)=>{
 });
 
 route.use("/room",Hostroute);
-route.use("/Server",ServerRoute)
+route.use("/toAgora",Agoraroute)

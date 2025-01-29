@@ -3,21 +3,23 @@ import { SigninVerification } from "../middlewares/Signin";
 import { SignupVerification } from "../middlewares/Signup";
 import { roomSchema, userCheckSchema, GuestEntrySchema } from "../types";
 import client from "@repo/db/client";
-import { v4 as v4 } from 'uuid';
+import bcrypt from "bcryptjs";
 export const Hostroute = Router();
 
-declare global{
-    namespace Express{
-        export interface Request{
-            hostId? : string;
-            roomName? : string
-        }
+declare module 'express-session' {
+    export interface SessionData {
+      RoomId?: string; 
+      GuestId?: string;
+      HostId?: string;
+      ProductKey?: string
     }
-}
+  }
 
 /**TODO: as for now there is only host id, make authentication strong */
 // ✅ 
-Hostroute.post("/createRoom", SigninVerification || SignupVerification, async(req , res)=>{
+Hostroute.post("/createRoom", SigninVerification || SignupVerification, async(req , res)=>{ 
+
+    console.log(`userid : ${req.session.userId}`);  // ✅
     try {
         const parsedData = roomSchema.safeParse(req.body);
         if(parsedData.error){
@@ -27,25 +29,32 @@ Hostroute.post("/createRoom", SigninVerification || SignupVerification, async(re
             return;
         }
         if(parsedData.success){
-            // const hostId = v4.toString();
-            const RoomId = Math.floor(Math.random()*10000000000).toString();
 
+            // const hostId = v4.toString();
             const host = await client.user.findUnique({
-                where: { id: "86f0dd53-d3f2-4963-a930" },
+                where: { id: req.session.userId }, //USERID
             });
+
+            const ProductKey = await bcrypt.hash("agoraserver", 10); 
+            console.log(ProductKey);
             
+
             if (!host) {
                 res.status(400).json({ error: "Host ID does not exist!" });
                 return;
             }
             const response = client.room.create({
                 data:{
-                    roomName: RoomId,
-                    hostId: "86f0dd53-d3f2-4963-a930-64cd8422d522"
+                    roomName: parsedData.data.roomOptions,
+                    hostId: req.session.userId || "",  //USERID
+                    ProductKey: (ProductKey).toString()
                 }
             });
-            console.log(`roomid : ${(await response).id}`);
-            res.status(201).json({message:`Host has successfully created ${parsedData.data.roomOptions} room with hostId ${(await response).id} and roomId ${RoomId} 🎉`});
+            req.session.RoomId = (await response).id;
+            console.log(`roomid : ${req.session.RoomId}`);
+            req.session.HostId = (await response).hostId;
+
+            res.status(201).json({message:`Host has successfully created ${parsedData.data.roomOptions} room with hostId ${(await response).id} and roomId ${(await response).id} 🎉`});
             return;
         }
     } catch (error) {
@@ -55,13 +64,13 @@ Hostroute.post("/createRoom", SigninVerification || SignupVerification, async(re
 }); 
 
 // the guest's userId should first present in the user-model; and the roomId which guest want to join should present in the room-model
+// guest's input data -> uski userid or roomid jisme entry chaaiye
 // ✅ 
 Hostroute.post("/guest", SigninVerification || SignupVerification, async (req, res) => {
 
+    console.log(`userid : ${req.session.userId}`);
+    
     const parsedData = userCheckSchema.safeParse(req.body);
-    const dbkiRoomUserId = "23774732-74b2-435a-9d6c-0e5ae79eaa0b";
-
-    // userID="32d8ef0d-e0ab-42b3-b9f4-238b2c089064"
 
     if (parsedData.error) {
         const error = JSON.stringify({ parsedData });
@@ -73,7 +82,7 @@ Hostroute.post("/guest", SigninVerification || SignupVerification, async (req, r
     // Check if the guest already exists in the room
     const existingGuest = await client.roomUsers.findFirst({
         where: {
-            id: "32d8ef0d-e0ab-42b3-b9f4-238b2c089064",
+            id: req.session.userId,     //USERID
         },
     });
 
@@ -91,7 +100,7 @@ Hostroute.post("/guest", SigninVerification || SignupVerification, async (req, r
         // Create a new guest entry in RoomUsers; guest should have roomId he want to join and regiseter as user in the & have userId
         const createGuest = await client.roomUsers.create({
             data: {
-                userId: parsedData.data.userId, //enter id from user-model
+                userId: req.session.userId || "", //enter id from user-model
                 roomId: parsedData.data.roomId //enter id from the room-model
             },
         });
@@ -101,7 +110,8 @@ Hostroute.post("/guest", SigninVerification || SignupVerification, async (req, r
             return;    
         }
 
-        console.log(`${createGuest.id} creatorId`);
+        req.session.GuestId = createGuest.id;
+        console.log(`GuestId : ${req.session.GuestId} and roomId : ${req.session.RoomId} `);
         res.status(201).json({ message: `Take permission from the host to enter the room.`});
         return;
     }
@@ -110,46 +120,69 @@ Hostroute.post("/guest", SigninVerification || SignupVerification, async (req, r
 });
 
 //here the host will get guestId, guestName and will permit the entry in the room ✅ 
-Hostroute.post("/permitEntry",SigninVerification || SignupVerification,  async(req,res)=>{
+Hostroute.post("/permitEntry", SigninVerification || SignupVerification, async (req, res) => {
     try {
         const parsedData = GuestEntrySchema.safeParse(req.body);
-        if(parsedData.error){
-            const error = JSON.stringify({parsedData}) 
+        if (parsedData.error) {
             console.log("Validation Error:", JSON.stringify(parsedData));
-            res.status(401).json({error});
+            res.status(401).json({ error: JSON.stringify(parsedData) });
             return;
-        };
-    
-        if(parsedData.success){
-            /**1. check wheather the id's are correct;
-             * 2. if user want to allowed the guest
-             */
+        }
+
+        if (parsedData.success) {
+            // Check if session values are set
+            if (!req.session.userId || !req.session.RoomId) {
+                res.status(400).json({ message: "Guest ID or Room ID is missing ❌." });
+                return;
+            }
+
+            // Validate Room ID
+            const roomExists = await client.room.findUnique({
+                where: { id: req.session.RoomId }
+            });
+
+            if (!roomExists) {
+                 res.status(400).json({ message: "Invalid Room ID ❌." });
+                 return;
+                }
+
+            // Validate User ID
+            const userExists = await client.user.findUnique({
+                where: { id: req.session.userId }
+            });
+
+            if (!userExists) {
+                 res.status(400).json({ message: "Invalid User ID ❌." });
+                 return;
+                }
+
+            // Insert guest entry
             const guest = await client.roomUsers.create({
-                data:{
-                    userId: parsedData.data.GuestId,
-                    roomId: parsedData.data.RoomId
+                data: {
+                    userId: req.session.userId || "",
+                    roomId: req.session.RoomId || ""
                 }
             });
-    
-            if(!guest){
-                res.status(404).json({ message:`Recheck your Id's 🕵️‍♂️.`});
-                return;    
+
+            console.log(`Guest ${req.session.userId} added to Room ${req.session.RoomId}`);
+
+             res.status(201).json({ message: "Guest added successfully! 🎉", guest });
+             return;
             }
-    
-            console.log(guest.id);
-            res.status(201).json({ message: "Guest added successfully! 🎉", guest });
+    } catch (error: any) {
+        console.error("Error:", error);
+
+        if (error.code === "P2003") {
+             res.status(400).json({
+                message: "Invalid foreign key: Check if the IDs exist before linking.",
+            });
             return;
         }
-    } catch (error) {
-        if (error === "P2003") {
-            res.status(400).json({
-                message: `Invalid ID provided. Check if the error is a PrismaClientKnownRequestError.`,
-            });
-        } else {
-            res.status(500).json({
-                message: "An unexpected error occurred. Please try again later ⏲️.",
-                error: `${error}`,
-            });
-        }
+
+        res.status(500).json({
+            message: "An unexpected error occurred. Please try again later ⏲️.",
+            error: error.message,
+        });
+        return;
     }
 });

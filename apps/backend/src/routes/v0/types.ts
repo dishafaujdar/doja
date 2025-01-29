@@ -12,7 +12,7 @@ export const signupSchema = z.object({
 })
 
 export const roomSchema = z.object({
-    roomOptions: z.enum(["Video call", "Voice call", "Chat"]),
+    roomOptions: z.string()
 });
 
 export const userCheckSchema = z.object({
@@ -22,6 +22,10 @@ export const userCheckSchema = z.object({
 
 export const GuestEntrySchema = z.object({
     Name: z.string(),
-    GuestId: z.string(),
-    RoomId: z.string()
+})
+
+export const AgoraEntrySchema = z.object({
+    HostName: z.string(),
+    RoomName: z.string(),
+    ProductKey: z.string()
 })

@@ -1,6 +1,6 @@
 1. Real-time messaging (1:1 and group chats)
 -> chat server 'll be initalized when userId/productId's are vaild ✅
--> Now allowed guest will put uniqueID (RoomUsersId) (jo bss allowed guest k pass hogi) and then they 'll join the room
+-> Now allowed guest will put uniqueID (RoomUsersId) (jo bss allowed guest k pass hogi) and then they 'll join the room ✅
 
 2. Presence indicators (Online/offline status)
 

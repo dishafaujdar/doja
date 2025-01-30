@@ -6,24 +6,7 @@ import { AgoraEntrySchema } from "../types";
 import {v4 as v4} from "uuid";
 import client from "@repo/db/client";
 export const Agoraroute = Router();
-
 import bcrypt from "bcryptjs";
-
-
-Agoraroute.get("/hey",async(req,res)=>{
-
-    res.json('hey')
-
-// Hash password
-const hashedPassword = await bcrypt.hash("password123", 10);
-console.log(hashedPassword);
-
-// Verify password
-const isValid = await bcrypt.compare("password123", hashedPassword);
-
-console.log(isValid); // true
-
-})
 
 // user'll be validate productKey and serviceKey jiske through he'll use the sdk for his code 
 Agoraroute.post("/server", SigninVerification || SignupVerification, HostVerification, async(req , res)=>{
@@ -39,18 +22,17 @@ Agoraroute.post("/server", SigninVerification || SignupVerification, HostVerific
             return;
         }
 
-        const hasedkey = req.session.ProductKey || "";
-        console.log(`hasedkey : ${hasedkey}`);
-        
+        const response = await client.room.findFirst({
+            where:{ProductKey: req.session.ProductKey}
+        });
 
-        const ServiceKey = await bcrypt.compare(parsedData.data.HostName,hasedkey)
-        console.log(ServiceKey);
+        console.log(req.session.ProductKey);
         
-        if(ServiceKey){
-            res.status(200).json({message:`Congratulations ${parsedData.data.ProductKey} now you can use download our sdk.`});
+        if(response){
+            res.status(200).json({message:`Congratulations ${parsedData.data.HostName} now you can use download our sdk 🎉.`});
             return;
         }else{
-            res.status(404).json({message:`The provided keys are incorrect.`});
+            res.status(404).json({message:`The provided keys are incorrect ❌.`});
             return;
         }
     } catch (error) {

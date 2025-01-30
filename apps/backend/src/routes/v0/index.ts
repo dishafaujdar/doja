@@ -13,7 +13,6 @@ declare module 'express-session' {
   }  
 
 route.post("/signin", async(req,res)=>{
-    console.log("hey from signin");
     try {
         const parsedData = signinSchema.safeParse(req.body);
         if(parsedData.error){
@@ -33,7 +32,7 @@ route.post("/signin", async(req,res)=>{
             console.log(req.session.userId); //✅
             if(userExists){
                 const SigninToken = jwt.sign({username: parsedData.data.name , id: userExists.id},"dojaserver",{expiresIn: "1h"});
-                res.status(302).json({message:`Login successful, user's token ${SigninToken}.`})
+                res.status(302).json({message:`user's token ${SigninToken}.`})
             } else{
                 res.status(404).json({message:"User account not found, recheck username, password or try signing up ."})
             }
@@ -45,7 +44,6 @@ route.post("/signin", async(req,res)=>{
 });
 
 route.post("/signup", async(req,res)=>{
-    console.log("hey from signup");
     try {
         const parsedData = signupSchema.safeParse(req.body);
         if(parsedData.error){
@@ -76,8 +74,7 @@ route.post("/signup", async(req,res)=>{
                 console.log(req.session.userId); //✅
                 
                 const SignupToken = jwt.sign({username: parsedData.data.name , id: NewUserEntry.id},"dojaserver",{expiresIn: "1h"});
-                res.status(200).json({message:`Welcome to doja's server \n
-                     Token ${SignupToken} `});
+                res.status(200).json({message:` Token ${SignupToken} `});
                 return;
             }
         }

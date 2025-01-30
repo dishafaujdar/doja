@@ -1,0 +1,18 @@
+1. Real-time messaging (1:1 and group chats)
+-> chat server 'll be initalized when userId/productId's are vaild ✅
+-> Now allowed guest will put uniqueID (RoomUsersId) (jo bss allowed guest k pass hogi) and then they 'll join the room
+
+2. Presence indicators (Online/offline status)
+
+3. Message history and storage
+
+4. Typing indicators, read receipts
+
+5. File and media sharing
+
+6. Push notifications
+
+7. End-to-end encryption (optional)
+
+
+EXTRA : Rate limiting & throttling (to prevent abuse)

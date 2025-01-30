@@ -35,10 +35,10 @@ Hostroute.post("/createRoom", SigninVerification || SignupVerification, async(re
                 where: { id: req.session.userId }, //USERID
             });
 
-            const ProductKey = await bcrypt.hash("agoraserver", 10); 
+            const ProductKey = await bcrypt.hash("agoraserver", 5); 
             console.log(ProductKey);
+            req.session.ProductKey = ProductKey;
             
-
             if (!host) {
                 res.status(400).json({ error: "Host ID does not exist!" });
                 return;
@@ -163,6 +163,8 @@ Hostroute.post("/permitEntry", SigninVerification || SignupVerification, async (
                     roomId: req.session.RoomId || ""
                 }
             });
+
+            
 
             console.log(`Guest ${req.session.userId} added to Room ${req.session.RoomId}`);
 
